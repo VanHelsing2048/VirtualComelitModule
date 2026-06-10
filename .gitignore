@@ -1,0 +1,16 @@
+.vs/
+.vscode/
+
+**/bin/
+**/obj/
+**/publish-check/
+
+**/*.user
+**/*.suo
+**/*.userosscache
+**/*.sln.docstates
+
+VirtualComelitModule/data/options.json
+
+.env
+*.log

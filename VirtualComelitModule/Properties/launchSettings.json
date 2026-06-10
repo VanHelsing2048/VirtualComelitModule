@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "VirtualComelitModule": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
