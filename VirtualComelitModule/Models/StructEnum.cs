@@ -33,8 +33,14 @@
     {
         OutputsNormal = 0x10,
         ForceOutputs = 0x22,
+        ReadMemory = 0x77,
+        WriteMemory = 0xAA,
+        ReadMemoryWithPage = 0x78,
+        WriteMemoryWithPage = 0xAB,
         ReadOutput16Bit = 0xF7,
         WriteOutput16Bit = 0xF9,
+        MemoryResponse = 0x33,
+        MemoryWithPageResponse = 0x34,
         Response = 0xFD,
     }
 

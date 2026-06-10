@@ -7,6 +7,7 @@ namespace ComelitVirtualModule
     {
         private readonly EthernetTlsClient _client;
         private readonly Dictionary<byte, Module8Output> _modules;
+        private readonly Dictionary<byte, VirtualModuleMemory> _moduleMemories;
         private readonly SemaphoreSlim _writeLock = new(1, 1);
 
         public ComelitBusResponder(EthernetTlsClient client, IEnumerable<VirtualOutputModuleOptions> modules)
@@ -20,6 +21,7 @@ namespace ComelitVirtualModule
                     output.UpdateOutputState(module.InitialState);
                     return output;
                 });
+            _moduleMemories = _modules.Keys.ToDictionary(address => address, _ => new VirtualModuleMemory());
         }
 
         public async Task HandleFrameAsync(byte[] frame, CancellationToken cancellationToken = default)
@@ -55,6 +57,18 @@ namespace ComelitVirtualModule
 
             if (IsForceOutputs(frame))
                 return TryForceOutputs(frame, out response);
+
+            if (IsReadMemory(frame))
+                return TryReadMemory(frame, out response);
+
+            if (IsWriteMemory(frame))
+                return TryWriteMemory(frame, out response);
+
+            if (IsReadMemoryWithPage(frame))
+                return TryReadMemoryWithPage(frame, out response);
+
+            if (IsWriteMemoryWithPage(frame))
+                return TryWriteMemoryWithPage(frame, out response);
 
             if (IsReadOutput16Bit(frame))
                 return TryReadOutput16Bit(frame, out response);
@@ -109,6 +123,64 @@ namespace ComelitVirtualModule
             return true;
         }
 
+        private bool TryReadMemory(byte[] frame, out byte[] response)
+        {
+            response = [];
+            var address = frame[2];
+
+            if (!_moduleMemories.TryGetValue(address, out var memory))
+                return false;
+
+            var cell = frame[3];
+            response = [(byte)TechnobusCommand.MemoryResponse, 0x00, address, cell, memory.Read(0, cell)];
+            return true;
+        }
+
+        private bool TryWriteMemory(byte[] frame, out byte[] response)
+        {
+            response = [];
+            var address = frame[2];
+
+            if (!_moduleMemories.TryGetValue(address, out var memory))
+                return false;
+
+            var cell = frame[3];
+            var value = frame[4];
+            memory.Write(0, cell, value);
+            response = [(byte)TechnobusCommand.MemoryResponse, 0x00, address, cell, value];
+            return true;
+        }
+
+        private bool TryReadMemoryWithPage(byte[] frame, out byte[] response)
+        {
+            response = [];
+            var page = frame[1];
+            var address = frame[2];
+
+            if (!_moduleMemories.TryGetValue(address, out var memory))
+                return false;
+
+            var cell = frame[3];
+            response = [(byte)TechnobusCommand.MemoryWithPageResponse, page, address, cell, memory.Read(page, cell)];
+            return true;
+        }
+
+        private bool TryWriteMemoryWithPage(byte[] frame, out byte[] response)
+        {
+            response = [];
+            var page = frame[1];
+            var address = frame[2];
+
+            if (!_moduleMemories.TryGetValue(address, out var memory))
+                return false;
+
+            var cell = frame[3];
+            var value = frame[4];
+            memory.Write(page, cell, value);
+            response = [(byte)TechnobusCommand.MemoryWithPageResponse, page, address, cell, value];
+            return true;
+        }
+
         private bool TryReadOutput16Bit(byte[] frame, out byte[] response)
         {
             response = [];
@@ -142,6 +214,18 @@ namespace ComelitVirtualModule
 
         private static bool IsForceOutputs(byte[] frame)
             => frame[0] == 0x55 && frame[1] == (byte)TechnobusCommand.ForceOutputs;
+
+        private static bool IsReadMemory(byte[] frame)
+            => frame[0] == (byte)TechnobusCommand.ReadMemory;
+
+        private static bool IsWriteMemory(byte[] frame)
+            => frame[0] == (byte)TechnobusCommand.WriteMemory;
+
+        private static bool IsReadMemoryWithPage(byte[] frame)
+            => frame[0] == (byte)TechnobusCommand.ReadMemoryWithPage;
+
+        private static bool IsWriteMemoryWithPage(byte[] frame)
+            => frame[0] == (byte)TechnobusCommand.WriteMemoryWithPage;
 
         private static bool IsReadOutput16Bit(byte[] frame)
             => frame[0] == (byte)TechnobusCommand.ReadOutput16Bit;

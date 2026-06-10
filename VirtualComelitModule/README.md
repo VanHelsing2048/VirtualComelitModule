@@ -4,6 +4,7 @@ Virtual Comelit bus module add-on for Home Assistant.
 
 The add-on connects to the Comelit bus endpoint and responds as one or more configurable 8-output virtual I/O modules.
 It does not publish MQTT directly; MQTT discovery and entity handling are expected to be handled by `MQTT_NET_COMELIT`.
+It also responds to Comelit memory read/write commands so tools such as SimpleProg can read and write module parameters on the virtual module.
 
 ## Configuration
 
