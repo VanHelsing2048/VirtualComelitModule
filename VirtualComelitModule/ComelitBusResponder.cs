@@ -7,21 +7,33 @@ namespace ComelitVirtualModule
     {
         private readonly EthernetTlsClient _client;
         private readonly Dictionary<byte, Module8Output> _modules;
+        private readonly Dictionary<byte, VirtualOutputModuleOptions> _moduleOptions;
         private readonly Dictionary<byte, VirtualModuleMemory> _moduleMemories;
+        private readonly VirtualModuleStateStore _stateStore;
         private readonly SemaphoreSlim _writeLock = new(1, 1);
 
         public ComelitBusResponder(EthernetTlsClient client, IEnumerable<VirtualOutputModuleOptions> modules)
         {
             _client = client;
-            _modules = modules.ToDictionary(
+            _stateStore = new VirtualModuleStateStore();
+            _moduleOptions = modules.ToDictionary(module => module.Address);
+            _modules = _moduleOptions.Values.ToDictionary(
                 module => module.Address,
                 module =>
                 {
                     var output = new Module8Output(module.Address);
-                    output.UpdateOutputState(module.InitialState);
+                    var persisted = _stateStore.GetModule(module.Address, module.Type);
+                    output.UpdateOutputState(persisted?.OutputState ?? module.InitialState);
                     return output;
                 });
-            _moduleMemories = _modules.Keys.ToDictionary(address => address, _ => new VirtualModuleMemory());
+            _moduleMemories = _moduleOptions.Values.ToDictionary(
+                module => module.Address,
+                module =>
+                {
+                    var memory = new VirtualModuleMemory(VirtualModuleTypes.ToComelitModuleType(module.Type));
+                    memory.Import(_stateStore.GetModule(module.Address, module.Type)?.Memory);
+                    return memory;
+                });
         }
 
         public async Task HandleFrameAsync(byte[] frame, CancellationToken cancellationToken = default)
@@ -102,6 +114,7 @@ namespace ComelitVirtualModule
             var mask = frame[3];
             var buttonStatus = frame[4];
             module.SetMaskedOutputs(mask, buttonStatus != 0);
+            PersistModule(address);
 
             response = [0x55, 0x00, address, mask, module.GetOutputState()];
             return true;
@@ -118,6 +131,7 @@ namespace ComelitVirtualModule
             var mask = frame[3];
             var values = frame[4];
             module.ApplyOutputMask(mask, values);
+            PersistModule(address);
 
             response = [0x55, 0x02, address, mask, module.GetOutputState()];
             return true;
@@ -147,6 +161,7 @@ namespace ComelitVirtualModule
             var cell = frame[3];
             var value = frame[4];
             memory.Write(0, cell, value);
+            PersistModule(address);
             response = [(byte)TechnobusCommand.MemoryResponse, 0x00, address, cell, value];
             return true;
         }
@@ -177,6 +192,7 @@ namespace ComelitVirtualModule
             var cell = frame[3];
             var value = frame[4];
             memory.Write(page, cell, value);
+            PersistModule(address);
             response = [(byte)TechnobusCommand.MemoryWithPageResponse, page, address, cell, value];
             return true;
         }
@@ -202,8 +218,23 @@ namespace ComelitVirtualModule
                 return false;
 
             module.UpdateOutputState(frame[4]);
+            PersistModule(address);
             response = [(byte)TechnobusCommand.Response, frame[1], address, frame[3], frame[4]];
             return true;
+        }
+
+        private void PersistModule(byte address)
+        {
+            if (!_moduleOptions.TryGetValue(address, out var options))
+                return;
+
+            if (!_modules.TryGetValue(address, out var module))
+                return;
+
+            if (!_moduleMemories.TryGetValue(address, out var memory))
+                return;
+
+            _stateStore.SaveModule(address, options.Type, module.GetOutputState(), memory);
         }
 
         private static bool IsPollAddress(byte[] frame)

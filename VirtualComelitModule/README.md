@@ -17,9 +17,11 @@ module-addresses:
   - 2
   - 10
 module-name-prefix: "Virtual I8"
+module-type: "i8"
 initial-state: 0
 ```
 
 Each module address must match the address used by the Comelit-side integration.
+The add-on persists output states and parameter memory in `/data/state.json`, so states are restored after Home Assistant or add-on restarts.
 
-For advanced setups, the add-on also accepts the previous `modules` list with per-module `address`, `name`, and `initial-state`.
+For advanced setups, the add-on also accepts the previous `modules` list with per-module `address`, `name`, `type`, and `initial-state`.

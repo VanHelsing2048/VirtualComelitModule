@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0
+
+- Persist output state and Comelit parameter memory in `/data/state.json`.
+- Add `module-type` and per-module `type` configuration metadata.
+
 ## 1.2.0
 
 - Add compact `module-addresses` configuration for multiple virtual I/O modules.

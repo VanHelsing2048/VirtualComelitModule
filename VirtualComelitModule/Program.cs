@@ -11,7 +11,7 @@ namespace ComelitVirtualModule
             var modules = options.GetModules();
 
             Console.WriteLine($"Connecting to Comelit bus {options.ComelitIp}:{options.ComelitPort}");
-            Console.WriteLine($"Virtual I/O modules: {string.Join(", ", modules.Select(m => $"{m.Name}@{m.Address}"))}");
+            Console.WriteLine($"Virtual modules: {string.Join(", ", modules.Select(m => $"{m.Name}[{m.Type}]@{m.Address}"))}");
 
             await using var client = new EthernetTlsClient(options.ComelitIp, options.ComelitPort, options.ComelitPassword);
             var responder = new ComelitBusResponder(client, modules);

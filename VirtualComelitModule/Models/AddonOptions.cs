@@ -27,6 +27,9 @@ namespace ComelitVirtualModule.Models
         [JsonPropertyName("module-name-prefix")]
         public string ModuleNamePrefix { get; init; } = "Virtual I8";
 
+        [JsonPropertyName("module-type")]
+        public string ModuleType { get; init; } = VirtualModuleTypes.I8;
+
         [JsonPropertyName("initial-state")]
         public byte InitialState { get; init; }
 
@@ -60,6 +63,7 @@ namespace ComelitVirtualModule.Models
                 {
                     Address = address,
                     Name = $"{ModuleNamePrefix} {address}",
+                    Type = ModuleType,
                     InitialState = InitialState,
                 })
                 .ToList();
@@ -74,7 +78,20 @@ namespace ComelitVirtualModule.Models
         [JsonPropertyName("name")]
         public string Name { get; init; } = "Virtual I8";
 
+        [JsonPropertyName("type")]
+        public string Type { get; init; } = VirtualModuleTypes.I8;
+
         [JsonPropertyName("initial-state")]
         public byte InitialState { get; init; }
+    }
+
+    internal static class VirtualModuleTypes
+    {
+        public const string I8 = "i8";
+
+        public static byte ToComelitModuleType(string type)
+            => string.Equals(type, I8, StringComparison.OrdinalIgnoreCase)
+                ? (byte)ModuleType.IOModule
+                : (byte)ModuleType.IOModule;
     }
 }

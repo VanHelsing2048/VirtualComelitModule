@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0
+
+- Persist virtual module output state and parameter memory across add-on restarts.
+- Add module type metadata to configuration and persisted state for future module kinds.
+
 ## 1.2.0
 
 - Add simplified add-on configuration for virtual module addresses.
