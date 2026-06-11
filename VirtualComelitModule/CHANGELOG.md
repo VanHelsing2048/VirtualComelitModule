@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- Add compact `module-addresses` configuration for multiple virtual I/O modules.
+- Keep optional advanced `modules` configuration for custom names and states.
+
 ## 1.1.0
 
 - Add Comelit memory read/write command handling for module parametrization.

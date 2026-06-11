@@ -12,10 +12,14 @@ It also responds to Comelit memory read/write commands so tools such as SimplePr
 comelit-ip: "192.168.1.51"
 comelit-port: 10011
 comelit-password: ""
-modules:
-  - address: 1
-    name: "Virtual I8"
-    initial-state: 0
+module-addresses:
+  - 1
+  - 2
+  - 10
+module-name-prefix: "Virtual I8"
+initial-state: 0
 ```
 
 Each module address must match the address used by the Comelit-side integration.
+
+For advanced setups, the add-on also accepts the previous `modules` list with per-module `address`, `name`, and `initial-state`.

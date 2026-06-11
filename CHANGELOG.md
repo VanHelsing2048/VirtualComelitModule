@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- Add simplified add-on configuration for virtual module addresses.
+- Keep advanced per-module configuration compatible with previous releases.
+
 ## 1.1.0
 
 - Add virtual memory parameter handling for Comelit read/write commands.

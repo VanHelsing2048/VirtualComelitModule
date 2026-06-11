@@ -21,6 +21,15 @@ namespace ComelitVirtualModule.Models
         [JsonPropertyName("comelit-password")]
         public string ComelitPassword { get; init; } = "";
 
+        [JsonPropertyName("module-addresses")]
+        public List<byte> ModuleAddresses { get; init; } = [1];
+
+        [JsonPropertyName("module-name-prefix")]
+        public string ModuleNamePrefix { get; init; } = "Virtual I8";
+
+        [JsonPropertyName("initial-state")]
+        public byte InitialState { get; init; }
+
         [JsonPropertyName("modules")]
         public List<VirtualOutputModuleOptions> Modules { get; init; } = [];
 
@@ -45,7 +54,15 @@ namespace ComelitVirtualModule.Models
             if (Modules.Count > 0)
                 return Modules;
 
-            return [new VirtualOutputModuleOptions()];
+            return ModuleAddresses
+                .Distinct()
+                .Select(address => new VirtualOutputModuleOptions
+                {
+                    Address = address,
+                    Name = $"{ModuleNamePrefix} {address}",
+                    InitialState = InitialState,
+                })
+                .ToList();
         }
     }
 

@@ -1,6 +1,6 @@
 name: "Comelit Virtual Module"
 description: "Integrazione alla domotica Comelit"
-version: "1.1.0"
+version: "1.2.0"
 slug: "comelit-vmod"
 init: false
 arch:
@@ -13,15 +13,19 @@ options:
   comelit-ip: "192.168.1.51"
   comelit-port: 10011
   comelit-password: ""
-  modules:
-    - address: 1
-      name: "Virtual I8"
-      initial-state: 0
+  module-addresses:
+    - 1
+  module-name-prefix: "Virtual I8"
+  initial-state: 0
 schema:
   comelit-ip: "str"
   comelit-port: "int(1,65535)"
   comelit-password: "password"
-  modules:
+  module-addresses:
+    - "int(1,255)"
+  module-name-prefix: "str"
+  initial-state: "int(0,255)"
+  modules?:
     - address: "int(1,255)"
       name: "str"
       initial-state: "int(0,255)"
